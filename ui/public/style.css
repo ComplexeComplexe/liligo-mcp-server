@@ -95,40 +95,6 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 
 .new-chat-btn:hover { background: var(--surface-3); border-color: var(--text-muted); }
 
-.sidebar-section-label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-muted);
-  padding: 16px 4px 8px;
-}
-
-.sidebar-tools { display: flex; flex-direction: column; gap: 2px; }
-
-.tool-item {
-  font-size: 12px;
-  color: var(--text-secondary);
-  padding: 5px 8px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  transition: background 0.15s;
-}
-
-.tool-item:hover { background: var(--surface-2); }
-
-.tool-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.tool-dot.active { background: var(--green); box-shadow: 0 0 6px rgba(52,211,153,0.4); }
 
 .sidebar-footer {
   padding: 12px 16px;
@@ -933,6 +899,177 @@ body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); c
 }
 
 .guide-tip strong { color: var(--accent); }
+
+/* ─── Prices Card ─── */
+.prices-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: calc(100% - 42px);
+}
+
+.prices-header {
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.prices-best {
+  color: var(--green);
+  font-size: 12px;
+  background: var(--green-subtle);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.prices-grid { padding: 8px; }
+
+.price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  gap: 8px;
+}
+
+.price-row:hover { background: var(--surface-2); }
+.price-row.price-best { background: var(--green-subtle); }
+
+.price-date { color: var(--text-secondary); font-family: 'SF Mono', monospace; font-size: 12px; }
+
+.price-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.price-amount { font-weight: 700; color: var(--text); min-width: 60px; text-align: right; }
+
+/* ─── Suggestions Card ─── */
+.suggestions-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: calc(100% - 42px);
+}
+
+.suggestions-header {
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.suggestions-count { color: var(--text-muted); font-weight: 400; margin-left: 6px; }
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+}
+
+.suggestion-dest {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.suggestion-dest:hover img { transform: scale(1.05); }
+
+.suggestion-dest img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.suggestion-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 10px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  color: white;
+}
+
+.suggestion-name { font-size: 13px; font-weight: 600; }
+.suggestion-country { font-size: 10px; opacity: 0.7; }
+.suggestion-price { font-size: 14px; font-weight: 700; color: var(--accent); margin-top: 2px; }
+
+/* ─── Dates Card ─── */
+.dates-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  max-width: calc(100% - 42px);
+}
+
+.dates-header {
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dates-savings {
+  color: var(--green);
+  font-size: 12px;
+  background: var(--green-subtle);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.dates-grid { padding: 8px; }
+
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.date-row:hover { background: var(--surface-2); }
+.date-row.date-best { background: var(--green-subtle); }
+.date-row.date-current { border: 1px solid var(--border); }
+
+.date-info { display: flex; align-items: center; gap: 8px; }
+
+.date-dep { color: var(--text-secondary); font-family: 'SF Mono', monospace; font-size: 12px; }
+
+.date-label {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.date-label.best { background: var(--green-subtle); color: var(--green); }
+
+.date-price { font-weight: 700; color: var(--text); }
 
 /* ─── Responsive ─── */
 @media (max-width: 768px) {

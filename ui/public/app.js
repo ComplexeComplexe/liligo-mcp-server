@@ -25,17 +25,8 @@ const state = {
   resolvedDest: null,
 };
 
-// ─── Tool Call Highlight (sidebar) ───
-function highlightTool(toolName) {
-  document.querySelectorAll('.tool-item').forEach(el => {
-    if (el.textContent.trim() === toolName) {
-      const dot = el.querySelector('.tool-dot');
-      if (dot) { dot.classList.add('active'); }
-      el.style.background = 'var(--surface-3)';
-      setTimeout(() => { el.style.background = ''; }, 1500);
-    }
-  });
-}
+// ─── Tool Call Highlight (no-op since sidebar simplified) ───
+function highlightTool(toolName) {}
 
 // ─── Message Renderers ───
 function renderText(content) {
@@ -256,6 +247,9 @@ function addMessage(msg) {
     case 'card-deeplink': content = renderDeeplinkCard(msg.content); break;
     case 'dest-showcase': content = renderDestShowcase(msg.content); break;
     case 'dest-guide': content = renderGuideCard(msg.content); break;
+    case 'card-prices': content = renderPricesCard(msg.content); break;
+    case 'card-suggestions': content = renderSuggestionsCard(msg.content); break;
+    case 'card-dates': content = renderDatesCard(msg.content); break;
     case 'loading': content = renderLoading(); break;
     default: content = renderText({ text: JSON.stringify(msg.content) });
   }
@@ -417,7 +411,9 @@ async function transitionTo(newState) {
 
     case 'DONE':
       await botTyping(300);
-      botText("Your Liligo search is ready! Click the button above to see live results.", ["Search again", "New destination"]);
+      botText("Your Liligo search is ready! What else would you like to explore?", [
+        "Compare prices", "Suggest destinations", "Flexible dates", "Search again"
+      ]);
       break;
   }
 }
@@ -468,11 +464,20 @@ async function handleUserInput(text) {
       break;
 
     case 'DONE':
-      if (text.toLowerCase().includes('again') || text.toLowerCase().includes('new') || text.toLowerCase().includes('search')) {
+      const lower = text.toLowerCase();
+      if (lower.includes('again') || lower.includes('new') || lower.includes('search')) {
         state.intent = {};
         state.resolvedOrigin = null;
         state.resolvedDest = null;
         await transitionTo('ASK_SEARCH');
+      } else if (lower.includes('price') || lower.includes('compare')) {
+        await showPriceComparison();
+      } else if (lower.includes('suggest') || lower.includes('destination') || lower.includes('inspir')) {
+        await showDestinationSuggestions();
+      } else if (lower.includes('flex') || lower.includes('date')) {
+        await showFlexibleDates();
+      } else {
+        await processNaturalLanguage(text);
       }
       break;
 
@@ -746,6 +751,178 @@ async function buildDeeplink() {
     botText(`Something went wrong: ${result.warnings?.join(', ') || 'Unknown error'}`, ["Try again"]);
     state.current = 'DONE';
   }
+}
+
+// ─── Extra Tool Features ───
+
+async function showPriceComparison() {
+  const origin = state.intent.origin_iata;
+  const dest = state.intent.destination_iata;
+  const dep = state.intent.departure_date;
+  if (!origin || !dest || !dep) {
+    botText("I need a complete search first to compare prices.", ["Search again"]);
+    return;
+  }
+  await botTyping(500);
+  highlightTool('search_cached_prices');
+  addMessage({ role: 'bot', type: 'tool-call', content: { tool: 'search_cached_prices', text: `Fetching cached prices for ${origin} → ${dest}...` } });
+
+  try {
+    const result = await api('search-prices', {
+      origin_iata: origin, destination_iata: dest,
+      departure_date: dep, return_date: state.intent.return_date,
+      range: 3, market_tld: state.intent.market_tld || 'fr',
+    });
+    if (result.results && result.results.length > 0) {
+      addMessage({ role: 'bot', type: 'card-prices', content: result });
+    } else {
+      botText("No cached prices available for this route yet. The prices will be available once you search on Liligo.");
+    }
+  } catch (e) {
+    botText("Could not fetch cached prices at the moment. Try searching directly on Liligo.");
+  }
+  botText("", ["Suggest destinations", "Flexible dates", "Search again"]);
+  // Remove empty bubble - show chips via last message
+  const msgs = messagesEl.querySelectorAll('.message');
+  if (msgs.length > 0) msgs[msgs.length - 1].remove();
+  showChips(["Suggest destinations", "Flexible dates", "Search again"]);
+}
+
+async function showDestinationSuggestions() {
+  const origin = state.intent.origin_iata || 'PAR';
+  await botTyping(500);
+  highlightTool('suggest_destinations');
+  addMessage({ role: 'bot', type: 'tool-call', content: { tool: 'suggest_destinations', text: `Finding inspiring destinations from ${origin}...` } });
+
+  try {
+    const result = await api('suggest-destinations', {
+      departure_city_id: origin,
+      month: state.intent.departure_date?.substring(0, 7),
+      market_tld: state.intent.market_tld || 'fr',
+    });
+    if (result.destinations && result.destinations.length > 0) {
+      addMessage({ role: 'bot', type: 'card-suggestions', content: result });
+    } else {
+      // Show our built-in destinations instead
+      botText("Here are some popular destinations you might enjoy:");
+      addMessage({ role: 'bot', type: 'dest-showcase', content: { destinations: getPopularDestinations(origin) } });
+    }
+  } catch (e) {
+    botText("Here are some popular destinations you might enjoy:");
+    addMessage({ role: 'bot', type: 'dest-showcase', content: { destinations: getPopularDestinations(origin) } });
+  }
+  showChips(["Compare prices", "Flexible dates", "Search again"]);
+}
+
+async function showFlexibleDates() {
+  const origin = state.intent.origin_iata;
+  const dest = state.intent.destination_iata;
+  const dep = state.intent.departure_date;
+  if (!origin || !dest || !dep) {
+    botText("I need a complete search first to suggest flexible dates.", ["Search again"]);
+    return;
+  }
+  await botTyping(500);
+  highlightTool('suggest_dates');
+  addMessage({ role: 'bot', type: 'tool-call', content: { tool: 'suggest_dates', text: `Checking flexible dates for ${origin} → ${dest}...` } });
+
+  try {
+    const result = await api('suggest-dates', {
+      origin_iata: origin, destination_iata: dest,
+      departure_date: dep, return_date: state.intent.return_date,
+      range: 5, market_tld: state.intent.market_tld || 'fr',
+    });
+    if (result.suggestions && result.suggestions.length > 0) {
+      addMessage({ role: 'bot', type: 'card-dates', content: result });
+    } else {
+      botText("No flexible date pricing available yet for this route.");
+    }
+  } catch (e) {
+    botText("Could not fetch date suggestions at the moment.");
+  }
+  showChips(["Compare prices", "Suggest destinations", "Search again"]);
+}
+
+// ─── Extra Card Renderers ───
+
+function renderPricesCard(content) {
+  const div = document.createElement('div');
+  div.className = 'prices-card';
+  const results = (content.results || []).slice(0, 8);
+  const cheapest = content.cheapest;
+  div.innerHTML = `
+    <div class="prices-header">
+      <span>Cached Prices</span>
+      ${cheapest ? `<span class="prices-best">Best: ${cheapest.price}${cheapest.currency === 'EUR' ? '€' : cheapest.currency}</span>` : ''}
+    </div>
+    <div class="prices-grid">
+      ${results.map(r => `
+        <div class="price-row ${r === cheapest ? 'price-best' : ''}">
+          <span class="price-date">${r.departure_date}</span>
+          <span class="price-badge">${r.direct ? 'Direct' : 'Stops'}</span>
+          <span class="price-amount">${r.price}${r.currency === 'EUR' ? '€' : r.currency}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  return div;
+}
+
+function renderSuggestionsCard(content) {
+  const div = document.createElement('div');
+  div.className = 'suggestions-card';
+  const dests = (content.destinations || []).slice(0, 6);
+  div.innerHTML = `
+    <div class="suggestions-header">Destination Suggestions <span class="suggestions-count">${content.count} found</span></div>
+    <div class="suggestions-grid">
+      ${dests.map(d => {
+        const destData = getDestination(d.iata_code);
+        const img = destData ? destData.image : 'https://images.unsplash.com/photo-1436491865332-7a61a109db05?w=300&h=200&fit=crop';
+        return `
+          <div class="suggestion-dest" onclick="handleUserInput('${d.city_name}')">
+            <img src="${img}" alt="${d.city_name}" loading="lazy">
+            <div class="suggestion-overlay">
+              <div class="suggestion-name">${d.city_name}</div>
+              <div class="suggestion-country">${d.country}</div>
+              <div class="suggestion-price">${d.price}${d.currency === 'EUR' ? '€' : d.currency}</div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  return div;
+}
+
+function renderDatesCard(content) {
+  const div = document.createElement('div');
+  div.className = 'dates-card';
+  const suggestions = (content.suggestions || []).slice(0, 8);
+  const reqPrice = content.requested_date_price;
+  const cheapest = content.cheapest_alternative;
+  div.innerHTML = `
+    <div class="dates-header">
+      <span>Flexible Dates</span>
+      ${cheapest && reqPrice ? `<span class="dates-savings">Save up to ${Math.round(reqPrice - cheapest.price)}${cheapest.currency === 'EUR' ? '€' : cheapest.currency}</span>` : ''}
+    </div>
+    <div class="dates-grid">
+      ${suggestions.map(s => {
+        const isCheapest = cheapest && s.departure_date === cheapest.departure_date;
+        const isRequested = s.departure_date === content.query?.departure_date;
+        return `
+          <div class="date-row ${isCheapest ? 'date-best' : ''} ${isRequested ? 'date-current' : ''}">
+            <div class="date-info">
+              <span class="date-dep">${s.departure_date}</span>
+              ${isRequested ? '<span class="date-label">Your date</span>' : ''}
+              ${isCheapest ? '<span class="date-label best">Cheapest</span>' : ''}
+            </div>
+            <div class="date-price">${s.price}${s.currency === 'EUR' ? '€' : s.currency}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  return div;
 }
 
 // ─── Input Handling ───
