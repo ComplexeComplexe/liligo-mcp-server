@@ -1,0 +1,23 @@
+{
+  "name": "liligo-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Liligo flight search",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "test": "node --test dist/tests/deeplink.test.js dist/tests/rank-options.test.js dist/tests/phase3.test.js dist/tests/phase4.test.js",
+    "ui": "node dist/src/ui/api-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

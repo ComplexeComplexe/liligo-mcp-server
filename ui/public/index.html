@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liligo MCP — Flight Assistant</title>
+  <link rel="stylesheet" href="/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo-row">
+          <span class="sidebar-logo">&#9992;</span>
+          <span class="sidebar-title">Liligo</span>
+          <span class="sidebar-badge">MCP</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="new-chat-btn" id="new-chat-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          New conversation
+        </button>
+        <div class="sidebar-section-label">Tools</div>
+        <div class="sidebar-tools">
+          <div class="tool-item"><span class="tool-dot active"></span>detect_travel_intent</div>
+          <div class="tool-item"><span class="tool-dot active"></span>resolve_city_identifiers</div>
+          <div class="tool-item"><span class="tool-dot active"></span>validate_travel_intent</div>
+          <div class="tool-item"><span class="tool-dot active"></span>build_liligo_deeplink</div>
+          <div class="tool-item"><span class="tool-dot"></span>search_cached_prices</div>
+          <div class="tool-item"><span class="tool-dot"></span>suggest_destinations</div>
+          <div class="tool-item"><span class="tool-dot"></span>suggest_dates</div>
+          <div class="tool-item"><span class="tool-dot"></span>rank_click_options</div>
+          <div class="tool-item"><span class="tool-dot"></span>refine_travel_intent</div>
+          <div class="tool-item"><span class="tool-dot"></span>render_results</div>
+          <div class="tool-item"><span class="tool-dot"></span>track_event</div>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="sidebar-status">
+          <span class="pulse-dot"></span> Server connected
+        </div>
+        <div class="sidebar-version">v1.0.0 &middot; 11 tools &middot; 3 APIs</div>
+      </div>
+    </aside>
+
+    <!-- Main chat -->
+    <main class="chat-area">
+      <header class="chat-header">
+        <button class="hamburger" id="hamburger">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <div class="chat-header-center">
+          <span class="header-model">Liligo Flight Assistant</span>
+          <span class="header-sep">&middot;</span>
+          <span class="header-mode">MCP Mode</span>
+        </div>
+        <div class="chat-header-right">
+          <span class="online-badge"><span class="online-dot"></span> Live</span>
+        </div>
+      </header>
+
+      <div class="chat-messages" id="messages"></div>
+
+      <div class="chat-input-area">
+        <div class="chips-row" id="chips"></div>
+        <div class="input-container">
+          <div class="input-row">
+            <textarea id="user-input" placeholder="Ask anything about flights..." rows="1"></textarea>
+            <button id="send-btn" class="send-btn" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+            </button>
+          </div>
+          <div class="input-footer">
+            <span>Liligo MCP can search flights, resolve cities, and generate booking links</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/destinations.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
